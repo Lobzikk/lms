@@ -13,14 +13,12 @@ type MathServer struct {
 	name        string
 	expressions []expressions.MathExpression
 	opers       map[string]int
-	error       bool
 }
 
 func NewServer(name string, opers map[string]int) *MathServer {
 	return &MathServer{
 		name:        name,
 		expressions: make([]expressions.MathExpression, 0),
-		error:       false,
 		opers:       opers,
 	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	expressions "lms/expressions"
+	server "lms/server"
 	"regexp"
 
 	shuntingYard "github.com/mgenware/go-shunting-yard"
@@ -11,7 +12,7 @@ import (
 // executes an operator
 
 func main() {
-	input := "(2 /0)+(2*2) +   (2+2)*2"
+	input := "(2 /1)+(2*2) +   (2+2)*2"
 	regex := "[-+*/0-9()]"
 	fmt.Println(regexp.MatchString(regex, input))
 	// parse input expression to infix notation
@@ -40,5 +41,6 @@ func main() {
 	}
 
 	// output the result
-	fmt.Printf("Result: %v", result)
+	fmt.Printf("Result: %v\n", result)
+	fmt.Println(server.GenNames("server/names.txt", 8))
 }
