@@ -34,7 +34,10 @@ func (ms *MathServer) Start(ch chan expressions.MathExpression, cancel chan stru
 			ms.Expressions = append(ms.Expressions, expression)
 		case <-time.After(1 * time.Second):
 			for ind, expression := range ms.Expressions {
-				if expression.Code == 400 {
+				if expression.SolvingTime > ms.Opers[string(expression.Current[1])] { //expression expired
+					expression.Code = 503
+				}
+				if expression.Code == 400 || expression.Code == 503 {
 					if !expression.IsMarked {
 						go func() {
 							expression.IsMarked = true

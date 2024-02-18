@@ -154,6 +154,26 @@ func (a *AgentServer) ExportMathServers() { //(and clear the previous data)
 }
 
 func (a *AgentServer) Start(restart, shutdown chan struct{}, expressions chan string, opers map[string]int, restarted bool) {
+	if opers == nil {
+		opers = make(map[string]int, 4)
+		var err error
+		opers["SUM"], err = strconv.Atoi(os.Getenv("SUM"))
+		if err != nil {
+			panic(err)
+		}
+		opers["PROD"], err = strconv.Atoi(os.Getenv("PROD"))
+		if err != nil {
+			panic(err)
+		}
+		opers["SUB"], err = strconv.Atoi(os.Getenv("MINUS"))
+		if err != nil {
+			panic(err)
+		}
+		opers["DIV"], err = strconv.Atoi(os.Getenv("DIV"))
+		if err != nil {
+			panic(err)
+		}
+	}
 	a.Fill(opers, !restarted)
 	var id int
 	expChanells := make([]chan epxressions.MathExpression, len(a.MathServers))
@@ -216,6 +236,10 @@ func (a *AgentServer) Start(restart, shutdown chan struct{}, expressions chan st
 		case <-time.After(10 * time.Second): //autosave every 10 seconds
 			a.mu.Lock()
 			a.ExportMathServers()
+			os.Setenv("SUM", strconv.Itoa(opers["+"]))
+			os.Setenv("DIV", strconv.Itoa(opers["/"]))
+			os.Setenv("PROD", strconv.Itoa(opers["*"]))
+			os.Setenv("SUB", strconv.Itoa(opers["-"]))
 			a.mu.Unlock()
 		}
 	}
