@@ -1,7 +1,6 @@
 {
     "INTΣGR4T0R": {
         "error": false,
-        "total_expressions": 3,
         "expressions": [
             {
                 "id": 1,
@@ -25,7 +24,6 @@
     },
     "RΣ$0LVΣR": {
         "error": false,
-        "total_expressions": 2,
         "expressions": [
             {
                 "id": 6,

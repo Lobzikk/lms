@@ -10,27 +10,30 @@ import (
 )
 
 type MathServer struct {
-	name        string
-	expressions []expressions.MathExpression
-	opers       map[string]int
+	Name        string
+	Expressions []expressions.MathExpression
+	Opers       map[string]int
 }
 
-func NewServer(name string, opers map[string]int) *MathServer {
+func NewServer(Name string, opers map[string]int) *MathServer {
 	return &MathServer{
-		name:        name,
-		expressions: make([]expressions.MathExpression, 0),
-		opers:       opers,
+		Name:        Name,
+		Expressions: make([]expressions.MathExpression, 0),
+		Opers:       opers,
 	}
 }
 
-func (ms *MathServer) Start(ch chan expressions.MathExpression) {
+func (ms *MathServer) Start(ch chan expressions.MathExpression, cancel chan struct{}) {
 	var mu sync.Mutex
 	for {
 		select {
+		case <-cancel:
+			time.Sleep(11 * time.Second)
+			return
 		case expression := <-ch:
-			ms.expressions = append(ms.expressions, expression)
+			ms.Expressions = append(ms.Expressions, expression)
 		case <-time.After(1 * time.Second):
-			for ind, expression := range ms.expressions {
+			for ind, expression := range ms.Expressions {
 				if expression.Code == 400 {
 					if !expression.IsMarked {
 						go func() {
@@ -38,16 +41,16 @@ func (ms *MathServer) Start(ch chan expressions.MathExpression) {
 							//erase that element
 							time.Sleep(10 * time.Second)
 							mu.Lock()
-							ind := slices.Index(ms.expressions, expression)
-							ms.expressions[ind] = ms.expressions[len(ms.expressions)-1]
-							ms.expressions[len(ms.expressions)-1] = expressions.MathExpression{}
-							ms.expressions = ms.expressions[:len(ms.expressions)-1]
+							ind := slices.Index(ms.Expressions, expression)
+							ms.Expressions[ind] = ms.Expressions[len(ms.Expressions)-1]
+							ms.Expressions[len(ms.Expressions)-1] = expressions.MathExpression{}
+							ms.Expressions = ms.Expressions[:len(ms.Expressions)-1]
 							mu.Unlock()
 						}()
 					}
 					continue
 				}
-				ms.expressions[ind].SolvingTime++
+				ms.Expressions[ind].SolvingTime++
 				// operations hash map should be sorted in ascending order by this moment
 				if expression.Current == "" {
 					infix, err := shuntingYard.Scan(expression.Expression)
@@ -61,14 +64,16 @@ func (ms *MathServer) Start(ch chan expressions.MathExpression) {
 						break
 					}
 					var found bool
-					for oper := range ms.opers {
+					for oper := range ms.Opers {
 						if found {
 							break
 						}
 						for ind, token := range postfix {
 							if ind > 1 && token.Value.(string) == oper && postfix[ind-1].Type == 1 && postfix[ind-2].Type == 1 {
 								expression.Current = postfix[ind-2].Value.(string) + token.Value.(string) + postfix[ind-1].Value.(string)
-							} else if found {
+								found = true
+							}
+							if found {
 								break
 							}
 						}
