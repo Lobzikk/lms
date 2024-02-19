@@ -1,8 +1,7 @@
 # Backup Policy
-Every expression is saved completely in MongoDB in 3 cases:
+Every expression is saved completely in MongoDB in 2 cases:
  * Every 10 seconds in order to avoid losing data (autosave)
- * When turning off the server manually
- * When one of the servers crashes
+ * When restarting the server manually
 
 ---
 
