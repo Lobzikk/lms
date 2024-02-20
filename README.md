@@ -23,6 +23,7 @@ The expression should meet the following requirements:
  * Expression contains right amount of round brackets (e.g. `2+(2` is invalid)
  * Expression is solvable (no division by 0)
  * There are no negative or float numbers
+
 They are checked by various ways:
  * 1st one is checked using regexp both on frontend and backend
  * The 2nd one is checked in the proccess of parsing
@@ -33,6 +34,7 @@ They are checked by various ways:
 
 # Launching the server
 Just run the `main.go` file! (also edit .env to add your MongoDB URI in it and run `go mod tidy` to install dependencies)
+
 **WARNING: Having own MongoDB cluster is essential for launching**
 
 ---
