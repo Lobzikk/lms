@@ -43,6 +43,11 @@ func (ms *MainServer) Start() {
 		opersMap["*"] = opers.Prod
 		opersMap["/"] = opers.Div
 		ms.Opers = opersMap
+		ms.Agent.mu.Lock()
+		for i := 0; i < len(ms.Agent.MathServers); i++ {
+			ms.Agent.MathServers[i].Opers = ms.Opers
+		}
+		ms.Agent.mu.Unlock()
 	})
 	mux.HandleFunc("/kill", func(w http.ResponseWriter, r *http.Request) {
 		shutdownChan <- struct{}{}
