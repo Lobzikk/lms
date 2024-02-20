@@ -7,7 +7,9 @@ Every expression is saved completely in MongoDB in 2 cases:
 
 # POST/GET requests
 To get all the info about workers, visit "/getExpressions" page and get the workers JSON
+
 To update info about operators, send POST requst to /opers with fields similar to one in `.env` (Prod, Sum, Div, Sub) with time set as number of seconds for each operator
+
 To add new expression go to "/newExpression" and send the POST request with just one field - Exp (expression in a form of a simple string)
 
 ---
