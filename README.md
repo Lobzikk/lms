@@ -34,7 +34,7 @@ They are checked by various ways:
 ---
 
 # Launching the server
-Import server package from `lms/server` to `main.go` (you need to create `main.go` file by yourself), create a `MainServer` instance, do `go mod tidy` and edit `.env` file if you want to change the settings.
+Just run the `main.go` file! (also edit .env to add your MongoDB URI in it)
 **WARNING: Having own MongoDB cluster is essential for launching**
 
 ---
