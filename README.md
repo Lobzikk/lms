@@ -3,8 +3,6 @@ Every expression is saved completely in MongoDB in 2 cases:
  * Every 10 seconds in order to avoid losing data (autosave)
  * When restarting the server manually
 
----
-
 # Server status codes:
  * 200, everything is fine
  * 400, expression isn't valid (division by zero or unsolvable expressions)
@@ -34,7 +32,7 @@ They are checked by various ways:
 ---
 
 # Launching the server
-Just run the `main.go` file! (also edit .env to add your MongoDB URI in it)
+Just run the `main.go` file! (also edit .env to add your MongoDB URI in it and run `go mod tidy` to install dependencies)
 **WARNING: Having own MongoDB cluster is essential for launching**
 
 ---
