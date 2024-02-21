@@ -165,7 +165,7 @@ func (a *AgentServer) Start(restart, shutdown chan struct{}, expressions chan st
 		if err != nil {
 			panic(err)
 		}
-		opers["SUB"], err = strconv.Atoi(os.Getenv("MINUS"))
+		opers["SUB"], err = strconv.Atoi(os.Getenv("SUB"))
 		if err != nil {
 			panic(err)
 		}
