@@ -28,6 +28,7 @@ func (ms *MainServer) Start() {
 		shutdownChan    chan struct{}
 		expressionsChan chan string
 	)
+	ms.Agent = *NewAgentServer()
 	ms.Agent.Start(restartChan, shutdownChan, expressionsChan, ms.Opers, false)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/opers", func(w http.ResponseWriter, r *http.Request) {
