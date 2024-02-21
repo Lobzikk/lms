@@ -29,7 +29,7 @@ func (ms *MainServer) Start() {
 		expressionsChan chan string
 	)
 	ms.Agent = *NewAgentServer()
-	ms.Agent.Start(restartChan, shutdownChan, expressionsChan, ms.Opers, false)
+	go ms.Agent.Start(restartChan, shutdownChan, expressionsChan, ms.Opers, false)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/opers", func(w http.ResponseWriter, r *http.Request) {
 		var opers Opers
@@ -70,13 +70,11 @@ func (ms *MainServer) Start() {
 		expressionsChan <- exp.Exp
 	})
 	mux.HandleFunc("/getExpressions", func(w http.ResponseWriter, r *http.Request) {
-		ms.Agent.mu.Lock()
 		data, err := json.Marshal(ms.Agent.MathServers)
 		if err != nil {
 			panic(err)
 		}
 		w.Write(data)
-		ms.Agent.mu.Unlock()
 	})
-	go http.ListenAndServe(":8000", mux)
+	http.ListenAndServe(":8000", mux)
 }
