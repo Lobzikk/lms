@@ -153,7 +153,7 @@ func (a *AgentServer) ExportMathServers() { //(and clear the previous data)
 	}
 }
 
-func (a *AgentServer) Start(restart, shutdown chan struct{}, expressions chan string, opers map[string]int, restarted bool) {
+func (a *AgentServer) Start(restart, shutdown <-chan struct{}, expressions <-chan string, opers map[string]int, restarted bool) {
 	if opers == nil {
 		opers = make(map[string]int, 4)
 		var err error
@@ -210,6 +210,7 @@ func (a *AgentServer) Start(restart, shutdown chan struct{}, expressions chan st
 			a.ExportMathServers()
 			return
 		case expression := <-expressions:
+			fmt.Println("aaa")
 			a.mu.Lock()
 			id++
 			sort.Slice(a.MathServers, func(i, j int) bool {

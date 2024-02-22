@@ -2,8 +2,10 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 )
 
 type Opers struct {
@@ -32,17 +34,11 @@ func (ms *MainServer) Start() {
 	go ms.Agent.Start(restartChan, shutdownChan, expressionsChan, ms.Opers, false)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/opers", func(w http.ResponseWriter, r *http.Request) {
-		var opers Opers
-		err := json.NewDecoder(r.Body).Decode(&opers)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
 		opersMap := make(map[string]int, 4)
-		opersMap["+"] = opers.Sum
-		opersMap["-"] = opers.Sub
-		opersMap["*"] = opers.Prod
-		opersMap["/"] = opers.Div
+		opersMap["+"], _ = strconv.Atoi(r.URL.Query().Get("Sum"))
+		opersMap["-"], _ = strconv.Atoi(r.URL.Query().Get("Sub"))
+		opersMap["*"], _ = strconv.Atoi(r.URL.Query().Get("Prod"))
+		opersMap["/"], _ = strconv.Atoi(r.URL.Query().Get("Div"))
 		ms.Opers = opersMap
 		ms.Agent.mu.Lock()
 		for i := 0; i < len(ms.Agent.MathServers); i++ {
@@ -57,17 +53,14 @@ func (ms *MainServer) Start() {
 		restartChan <- struct{}{}
 	})
 	mux.HandleFunc("/newExpression", func(w http.ResponseWriter, r *http.Request) {
-		var exp ExpressionString
-		if err := json.NewDecoder(r.Body).Decode(&exp); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		ok, err := regexp.MatchString("[-+*/0-9()]", exp.Exp)
+		exp := r.URL.Query().Get("Exp")
+		ok, err := regexp.MatchString("[-+*/0-9()]", exp)
 		if err != nil || !ok {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		expressionsChan <- exp.Exp
+		fmt.Print(exp)
+		expressionsChan <- exp
 	})
 	mux.HandleFunc("/getExpressions", func(w http.ResponseWriter, r *http.Request) {
 		data, err := json.Marshal(ms.Agent.MathServers)
