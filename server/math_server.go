@@ -1,9 +1,9 @@
 package server
 
 import (
+	"fmt"
 	expressions "lms/expressions"
-	"slices"
-	"sync"
+	//"slices"
 	"time"
 
 	shuntingYard "github.com/mgenware/go-shunting-yard"
@@ -24,7 +24,6 @@ func NewServer(Name string, opers map[string]int) *MathServer {
 }
 
 func (ms *MathServer) Start(ch chan expressions.MathExpression, cancel chan struct{}) {
-	var mu sync.Mutex
 	for {
 		select {
 		case <-cancel:
@@ -32,35 +31,44 @@ func (ms *MathServer) Start(ch chan expressions.MathExpression, cancel chan stru
 			return
 		case expression := <-ch:
 			ms.Expressions = append(ms.Expressions, expression)
+			fmt.Print(ms)
 		case <-time.After(1 * time.Second):
-			for ind, expression := range ms.Expressions {
-				if expression.SolvingTime > ms.Opers[string(expression.Current[1])] { //expression expired
-					expression.Code = 503
-				}
-				if expression.Code == 400 || expression.Code == 503 {
-					if !expression.IsMarked {
-						go func() {
-							expression.IsMarked = true
-							//erase that element
-							time.Sleep(10 * time.Second)
-							mu.Lock()
-							ind := slices.Index(ms.Expressions, expression)
-							ms.Expressions[ind] = ms.Expressions[len(ms.Expressions)-1]
-							ms.Expressions[len(ms.Expressions)-1] = expressions.MathExpression{}
-							ms.Expressions = ms.Expressions[:len(ms.Expressions)-1]
-							mu.Unlock()
-						}()
+			for indExp, expression := range ms.Expressions {
+				if expression.Current != "" {
+					//checking if expression is solvable
+					if string(expression.Current[1]) == "/" && string(expression.Current[2]) == "0" {
+						expression.Code = 400
 					}
-					continue
-				}
-				ms.Expressions[ind].SolvingTime++
-				// operations hash map should be sorted in ascending order by this moment
-				if expression.Current == "" {
+					if expression.SolvingTime > ms.Opers[string(expression.Current[1])] { //expression expired
+						expression.Code = 503
+					}
+					if expression.Code == 400 || expression.Code == 503 {
+						// if !expression.IsMarked {
+						// 	go func() {
+						// 		expression.IsMarked = true
+						// 		//erase that element
+						// 		time.Sleep(10 * time.Second)
+						// 		ind := slices.Index(ms.Expressions, expression)
+						// 		ms.Expressions[ind] = ms.Expressions[len(ms.Expressions)-1]
+						// 		ms.Expressions[len(ms.Expressions)-1] = expressions.MathExpression{}
+						// 		ms.Expressions = ms.Expressions[:len(ms.Expressions)-1]
+						// 	}()
+						// }
+						continue
+					}
+					ms.Expressions[indExp].SolvingTime++
+					//checking if expression is solvable
+					if string(expression.Current[1]) == "/" && string(expression.Current[2]) == "0" {
+						expression.Code = 400
+					}
+				} else {
+					// operations hash map should be sorted in ascending order by this moment
 					infix, err := shuntingYard.Scan(expression.Expression)
 					if err != nil {
 						expression.Code = 400
 						break
 					}
+					fmt.Print(infix)
 					postfix, err := shuntingYard.Parse(infix)
 					if err != nil {
 						expression.Code = 400
@@ -72,19 +80,16 @@ func (ms *MathServer) Start(ch chan expressions.MathExpression, cancel chan stru
 							break
 						}
 						for ind, token := range postfix {
-							if ind > 1 && token.Value.(string) == oper && postfix[ind-1].Type == 1 && postfix[ind-2].Type == 1 {
-								expression.Current = postfix[ind-2].Value.(string) + token.Value.(string) + postfix[ind-1].Value.(string)
+							if ind > 1 && token.Value == oper && postfix[ind-1].Type == 1 && postfix[ind-2].Type == 1 {
+								ms.Expressions[indExp].Current = fmt.Sprintf("%d%s%d", postfix[ind-2].Value, token.Value, postfix[ind-1].Value)
 								found = true
+								fmt.Println(expression.Current)
 							}
 							if found {
 								break
 							}
 						}
 					}
-				}
-				//checking if expression is solvable
-				if string(expression.Current[1]) == "/" && string(expression.Current[2]) == "0" {
-					expression.Code = 400
 				}
 			}
 		}

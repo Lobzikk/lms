@@ -157,19 +157,19 @@ func (a *AgentServer) Start(restart, shutdown <-chan struct{}, expressions <-cha
 	if opers == nil {
 		opers = make(map[string]int, 4)
 		var err error
-		opers["SUM"], err = strconv.Atoi(os.Getenv("SUM"))
+		opers["+"], err = strconv.Atoi(os.Getenv("SUM"))
 		if err != nil {
 			panic(err)
 		}
-		opers["PROD"], err = strconv.Atoi(os.Getenv("PROD"))
+		opers["*"], err = strconv.Atoi(os.Getenv("PROD"))
 		if err != nil {
 			panic(err)
 		}
-		opers["SUB"], err = strconv.Atoi(os.Getenv("SUB"))
+		opers["-"], err = strconv.Atoi(os.Getenv("SUB"))
 		if err != nil {
 			panic(err)
 		}
-		opers["DIV"], err = strconv.Atoi(os.Getenv("DIV"))
+		opers["/"], err = strconv.Atoi(os.Getenv("DIV"))
 		if err != nil {
 			panic(err)
 		}
@@ -177,6 +177,9 @@ func (a *AgentServer) Start(restart, shutdown <-chan struct{}, expressions <-cha
 	a.Fill(opers, !restarted)
 	var id int
 	expChanells := make([]chan epxressions.MathExpression, len(a.MathServers))
+	for ind := range expChanells {
+		expChanells[ind] = make(chan epxressions.MathExpression)
+	}
 	killChannels := make([]chan struct{}, len(a.MathServers))
 	for ind, server := range a.MathServers {
 		go server.Start(expChanells[ind], killChannels[ind])
@@ -210,8 +213,7 @@ func (a *AgentServer) Start(restart, shutdown <-chan struct{}, expressions <-cha
 			a.ExportMathServers()
 			return
 		case expression := <-expressions:
-			fmt.Println("aaa")
-			a.mu.Lock()
+			fmt.Println("aa1")
 			id++
 			sort.Slice(a.MathServers, func(i, j int) bool {
 				return len(a.MathServers[i].Expressions) < len(a.MathServers[j].Expressions)
@@ -233,15 +235,12 @@ func (a *AgentServer) Start(restart, shutdown <-chan struct{}, expressions <-cha
 			if full {
 				a.ErrorsChan <- fmt.Errorf("error: server is currently full")
 			}
-			a.mu.Unlock()
-		case <-time.After(10 * time.Second): //autosave every 10 seconds
-			a.mu.Lock()
-			a.ExportMathServers()
-			os.Setenv("SUM", strconv.Itoa(opers["+"]))
-			os.Setenv("DIV", strconv.Itoa(opers["/"]))
-			os.Setenv("PROD", strconv.Itoa(opers["*"]))
-			os.Setenv("SUB", strconv.Itoa(opers["-"]))
-			a.mu.Unlock()
+			// case <-time.After(10 * time.Second): //autosave every 10 seconds
+			// 	a.ExportMathServers()
+			// 	os.Setenv("SUM", strconv.Itoa(opers["+"]))
+			// 	os.Setenv("DIV", strconv.Itoa(opers["/"]))
+			// 	os.Setenv("PROD", strconv.Itoa(opers["*"]))
+			// 	os.Setenv("SUB", strconv.Itoa(opers["-"]))
 		}
 	}
 }

@@ -1,7 +1,7 @@
 package server
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -25,11 +25,9 @@ type MainServer struct {
 }
 
 func (ms *MainServer) Start() {
-	var (
-		restartChan     chan struct{}
-		shutdownChan    chan struct{}
-		expressionsChan chan string
-	)
+	restartChan := make(chan struct{})
+	shutdownChan := make(chan struct{})
+	expressionsChan := make(chan string)
 	ms.Agent = *NewAgentServer()
 	go ms.Agent.Start(restartChan, shutdownChan, expressionsChan, ms.Opers, false)
 	mux := http.NewServeMux()
@@ -54,20 +52,22 @@ func (ms *MainServer) Start() {
 	})
 	mux.HandleFunc("/newExpression", func(w http.ResponseWriter, r *http.Request) {
 		exp := r.URL.Query().Get("Exp")
-		ok, err := regexp.MatchString("[-+*/0-9()]", exp)
-		if err != nil || !ok {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		reg := regexp.MustCompile(`[-+*/0-9()]`).MatchString(exp)
+		if !reg {
+			http.Error(w, "wrong format", http.StatusBadRequest)
 			return
 		}
-		fmt.Print(exp)
 		expressionsChan <- exp
 	})
 	mux.HandleFunc("/getExpressions", func(w http.ResponseWriter, r *http.Request) {
-		data, err := json.Marshal(ms.Agent.MathServers)
-		if err != nil {
-			panic(err)
+		// data, err := json.Marshal(ms.Agent.MathServers)
+		// if err != nil {
+		// 	panic(err)
+		// }
+		for _, server := range ms.Agent.MathServers {
+			w.Write([]byte(fmt.Sprint(&server)))
+			fmt.Println(server)
 		}
-		w.Write(data)
 	})
 	http.ListenAndServe(":8000", mux)
 }
