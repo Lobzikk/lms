@@ -16,7 +16,7 @@ set /p name= "Type as many unique names for the servers, as you can. Stop by inp
 set /p max= "Alright, now define how many workers could one server handle >>> "
 echo %max%>> ServersInfo.txt
 set /p url= "Now give me the url of your PostgreSQL DB  like that: <host:port> >>> "
-echo %url%>> ServersInfo.txt
+echo %url%>> DBInfo.txt
 set /p username= "What's the name of user you are operating with in PostgreSQL DB? >>> "
 echo %username%>> DBInfo.txt
 set /p password= "Now give me the password (please!) >>> "

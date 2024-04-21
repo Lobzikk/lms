@@ -1,28 +1,13 @@
 package httpstuff
 
 import (
-	"log"
 	"slices"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type User struct {
 	Name           string
 	HashedPassword string
 	IP             string
-}
-
-func EncryptPassword(password, key string) string {
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
-		"pwd": password,
-	})
-	tokenStr, err := token.SignedString([]byte(key))
-	if err != nil {
-		log.Printf("err occured: %v", err)
-		panic(err)
-	}
-	return tokenStr
 }
 
 // Codes:
@@ -85,5 +70,25 @@ func (s *Server) SignOut(IPAddress string) uint {
 	} else {
 		s.Users[ind].IP = ""
 		return 1
+	}
+}
+
+// Codes:
+//
+// 1: User verified
+//
+// 2: Trying to use the same account from different IP
+//
+// 0: User is not signed in
+func (s *Server) VerifyUser(IPAddress, username string) uint {
+	ind := slices.IndexFunc(s.Users, func(user User) bool {
+		return user.Name == username
+	})
+	if s.Users[ind].IP == IPAddress {
+		return 1
+	} else if s.Users[ind].IP == "" {
+		return 0
+	} else {
+		return 2
 	}
 }
