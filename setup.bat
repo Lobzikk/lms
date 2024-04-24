@@ -13,7 +13,7 @@ set /p name= "Type as many unique names for the servers, as you can. Stop by inp
         set /p name= ">>>"
         goto :loop_names
     )
-set /p max= "Alright, now define how many workers could one server handle >>> "
+set /p max= "Alright, now define how much time will one expression take to solve >>> "
 echo %max%>> ServersInfo.txt
 set /p url= "Now give me the url of your PostgreSQL DB  like that: <host:port> >>> "
 echo %url%>> DBInfo.txt
